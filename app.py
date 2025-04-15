@@ -89,13 +89,6 @@ def predict():
             raise Exception("Not enough data to make predictions (need at least 101 days).")
 
         window_size = 100
-        # X, y = [], []
-        # for i in range(len(prices) - window_size):
-        #     X.append(prices[i:i + window_size])
-        #     y.append(prices[i + window_size])
-
-        # X = np.array(X)
-        # y = np.array(y)
 
         X, y = [], []
         for i in range(len(prices) - window_size):
@@ -111,10 +104,6 @@ def predict():
         model.fit(X, y)
 
         # Predict next 5 days
-        # future_predictions = []
-        # last_window = prices[-window_size:]
-
-        # Predict next 5 days
         future_predictions = []
         last_window = prices[-window_size:].flatten()  # ✅ Ensure 1D
 
@@ -124,15 +113,34 @@ def predict():
             last_window = np.append(last_window[1:], next_price)  # Shift window
 
         # Plotting
-        dates = np.arange(len(prices))
-        future_dates = np.arange(len(prices), len(prices) + 5)
+        # dates = np.arange(len(prices))
+        # future_dates = np.arange(len(prices), len(prices) + 5)
+        import pandas as pd
+        from datetime import timedelta
+
+        dates = df.index[-len(prices):]  # Actual dates for historical prices
+
+        # Generate next 5 business days (skip weekends)
+        last_date = dates[-1]
+        future_dates = []
+        while len(future_dates) < 5:
+            last_date += timedelta(days=1)
+            if last_date.weekday() < 5:
+                future_dates.append(last_date)
+
 
         plt.figure(figsize=(10, 6))
+        # Historical
         plt.plot(dates, prices, label='Actual Prices', color='blue')
-        plt.plot(dates[window_size:], model.predict(X), label='Model Fit', color='red')
+        # Model Fit (shifted to align with data)
+        model_fit_dates = dates[window_size:]
+        model_fit_prices = model.predict(X)
+        plt.plot(model_fit_dates, model_fit_prices, label='Model Fit', color='red')
+        # Future
         plt.scatter(future_dates, future_predictions, label='Predicted Prices', color='green')
+
         plt.title(f'Random Forest 5-Day Forecast for {stock_symbol}')
-        plt.xlabel('Time (Days)')
+        plt.xlabel('Date')
         plt.ylabel('Stock Price')
         plt.legend()
         plt.tight_layout()
