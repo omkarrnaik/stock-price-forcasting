@@ -194,7 +194,7 @@ def predict():
 
     try:
         # Download data
-        df = yf.download(stock_symbol, start="2020-01-01", end="2025-04-1")
+        df = yf.download(stock_symbol, start="2020-01-01", end="2025-04-15")
         prices = df['Close'].dropna().values
 
         if len(prices) < 101:
